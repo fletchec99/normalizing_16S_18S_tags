@@ -1,5 +1,6 @@
 #Purpose: normalize raw counts of 16S and 18S ASVs by dividing counts of proks and euks by the % passing DADA2, then converting to proportions and multiplying counts of euks by the bias against them (as user specifies).
 #Required packages: Rscript, args 
+#Useage: Rscript normalize_16S_18S_ASV_proportions_v10.R <bias>
 #Output: This returns a file with ASV relative abundances out of (16S + 18S).
 #Note: we recommend assuming a 2-fold bias against 18S sequences, which has been found with Illumina HiSeq or MiSeq data (Yeh et al. 2018)
 #This script must be run from the base directory (the folder that contains 02-PROKs/ and 02-EUKs/)
@@ -10,7 +11,7 @@
 args=as.numeric(commandArgs(TRUE))
 
 if(length(args)==0){
-  stop("Please specify the bias against 18S sequences, e.g. '$ ./normalize_16S_18S_ASV_proportions.R <bias>'. For Illumina HiSeq or MiSeq data, we recommend assuming a 2-fold bias against 18S sequences (Yeh et al. 2018); i.e. specify '$ ./normalize_16S_18S_ASV_proportions.R 2'.n", call=FALSE)
+  stop("Please specify the bias against 18S sequences, e.g. '$ Rscript normalize_16S_18S_ASV_proportions_v10.R <bias>'. For Illumina HiSeq or MiSeq data, we recommend assuming a 2-fold bias against 18S sequences (Yeh et al. 2018); i.e. specify '$ ./normalize_16S_18S_ASV_proportions.R 2'.n", call=FALSE)
 }
 
 if(length(args)>1){
