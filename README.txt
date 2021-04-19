@@ -1,5 +1,5 @@
 ##Purpose:
-#This script merges 16S and 18S ASV tables generated through the qiime2 pipeline modified by Jesse McNichol by normalizing raw ASV counts against1) the percent of reads passing DADA2 and 2) the sequencing platform's bias against longer 18S sequences.
+#This script merges 16S and 18S ASV tables generated through the qiime2 pipeline modified by Jesse McNichol by normalizing raw ASV counts against 1) the percent of reads passing DADA2 and 2) the sequencing platform's bias against longer 18S sequences.
 
 ##Inputs:
 #The script automatically imports raw counts of the 16S and 18S ASVs ("02-PROKs/10-exports/all-16S-seqs.with-tax.tsv" and "02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv", respectively).
@@ -16,5 +16,5 @@
 #This script requires Rscript, base R, and optparse. 
 #Dependent packages may be found within the conda .yml file in this repository. 
 
-##Version: 04.12.2021
+##Version: 04.19.2021
 ##Author: Colette Fletcher-Hoppe, with help from Jesse McNichol.
