@@ -6,8 +6,9 @@ This script merges 16S and 18S ASV tables generated through the [qiime2 pipeline
 
 # Inputs:
 - 16S and 18S ASV count tables with taxonomy, as output by default from [the aforementioned pipeline](https://github.com/jcmcnch/eASV-pipeline-for-515Y-926R). *Do not* use tables that have been converted to relative abundance!
-- User must specify the bias against 18S sequences. We have found that a bias of 2x correctly normalizes our mixed mock communities of both 16S and 18S sequences ([Yeh et al., 2021](https://sfamjournals.onlinelibrary.wiley.com/doi/10.1111/1462-2920.15553)). 2x is therefore the default bias against 18S sequences in this script. However, samples from an environment with a higher proportion of long 18S sequences may have a larger bias against 18S.
-- User must also specify the prefix of the output file names. 
+- Statistics for how many of the initial reads pass through the DADA2 pipeline (also automatically produced by the pipeline indicated above).
+- A floating-point number representing the bias against 18S sequences. We have found that a bias of 2x correctly normalizes our mixed mock communities of both 16S and 18S sequences ([Yeh et al., 2021](https://sfamjournals.onlinelibrary.wiley.com/doi/10.1111/1462-2920.15553)). 2x is therefore the default bias against 18S sequences in this script. However, samples from an environment with a higher proportion of long 18S sequences may have a larger bias against 18S. This may also be taxa-dependent. For an example of how to do this calculation see [this repository](https://github.com/jcmcnch/P16N-S_2005-2006_CMAP/tree/main/18S-correction).
+- User must also specify the prefix of the output file names.
 
 # Outputs:
 - Two .tsv files will be generated, the normalized counts of 16S and 18S sequences and the counts converted to proportions (out of 16S+18S total sequences).
@@ -17,7 +18,9 @@ This script merges 16S and 18S ASV tables generated through the [qiime2 pipeline
 ```
 Rscript normalize_16S_18S.R --bias <float> \
 	--inputproks <input prok count table, with taxonomy> \
+	--prokstats <a tab-separated stats file for 16S> \
   	--inputeuks <input euk count table, with taxonomy> \
+	--eukstats <a tab-separated stats file for 18S> \
 	--outputfile <name>
 ```
 
