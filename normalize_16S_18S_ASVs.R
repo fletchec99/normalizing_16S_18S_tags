@@ -13,7 +13,9 @@ suppressMessages(library("optparse"))
 
 option_list=list(
   make_option(c("--inputproks"), default="02-PROKs/10-exports/all-16S-seqs.with-tax.tsv", type="character", help="Input file for prokaryotic (16S) ASV counts, default='02-PROKs/10-exports/all-16S-seqs.with-tax.tsv'. If using another file, please specify the full filepath and make sure it matches the format of default, including '#Constructed from biom file'.", metavar="character", action="store_true"),
-  make_option(c("--inputeuks"), default="02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv", type="character", help="Input file for eukaryotic (18S) ASV counts, default='02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv'. If using another file, please specify the full filepath and make sure it matches the format of default, including '#Constructed from biom file'.", metavar="character", action="store_true"),  
+  make_option(c("--inputeuks"), default="02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv", type="character", help="Input file for eukaryotic (18S) ASV counts, default='02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv'. If using another file, please specify the full filepath and make sure it matches the format of default, including '#Constructed from biom file'.", metavar="character", action="store_true"),
+  make_option(c("--prokstats"), default="02-PROKs/03-DADA2d/stats.tsv", type="character", help="Denoising statistics for 16S as output by qiime2, default='02-PROKs/03-DADA2d/stats.tsv'. If using another file, please specify the full filepath.", metavar="character", action="store_true"),
+  make_option(c("--eukstats"), default="02-EUKs/08-DADA2d/stats.tsv", type="character", help="Denoising statistics for 18S as output by qiime2, default='02-EUKs/08-DADA2d/stats.tsv'. If using another file, please specify the full filepath.", metavar="character", action="store_true"),
   make_option(c("--outputfile"), type="character", help="Prefix name of output file", metavar="character", action="store_true"),
   make_option(c("--bias"), default=2, type="numeric", help="Bias against 18S sequences, 2 by default", metavar="numeric", action="store_true")
 );
@@ -32,10 +34,10 @@ if(is.null(opt$bias)){
 
 #1. Calculate percent of reads that passed DADA2 denoising for both proks and euks -----
 print("1. Calculating DADA2 stats")
-proks_stats <- read.table("02-PROKs/03-DADA2d/stats.tsv", sep="\t", header=T, stringsAsFactors = F)
+proks_stats <- read.table(opt$prokstats, sep="\t", header=T, stringsAsFactors = F)
 proks_stats$perc.passed=proks_stats$non.chimeric/proks_stats$input
 
-euks_stats <- read.table("02-EUKs/08-DADA2d/stats.tsv", sep="\t", header=T, stringsAsFactors = F)
+euks_stats <- read.table(opt$eukstats, sep="\t", header=T, stringsAsFactors = F)
 euks_stats$perc.passed=euks_stats$non.chimeric/euks_stats$input
 
 #2. Normalize ASV counts (divide counts of ASVs/ percent passed for each sample, multiply euks ASV counts by the bias you specified)------
