@@ -1,12 +1,12 @@
 # Purpose:
 This script merges 16S and 18S ASV tables generated through the [qiime2 pipeline](https://github.com/jcmcnch/eASV-pipeline-for-515Y-926R) modified by Jesse McNichol by normalizing raw ASV counts against:
 
-1. The percent of reads passing DADA2, and
-2. The sequencing platform's bias against longer 18S sequences, as determined empirically by the investigator.
+1. The percent of reads passing DADA2's filters (accounting for variations likely due to quality differences between samples), and
+2. The sequencing platform's bias against longer 18S sequences, as determined empirically by the investigator (accounting for instrument-specific biases against longer 18S sequences as described in [Yeh et al., 2021](https://sfamjournals.onlinelibrary.wiley.com/doi/10.1111/1462-2920.15553)).
 
 # Inputs:
 - 16S and 18S ASV count tables with taxonomy, as output by default from [the aforementioned pipeline](https://github.com/jcmcnch/eASV-pipeline-for-515Y-926R). *Do not* use tables that have been converted to relative abundance!
-- User must specify the bias against 18S sequences. We have found that a bias of 2x correctly normalizes our mixed mock communities of both 16S and 18S sequences (Yeh et al., 2018). 2x is therefore the default bias against 18S sequences in this script. However, samples from an environment with a higher proportion of long 18S sequences may have a larger bias against 18S.
+- User must specify the bias against 18S sequences. We have found that a bias of 2x correctly normalizes our mixed mock communities of both 16S and 18S sequences ([Yeh et al., 2021](https://sfamjournals.onlinelibrary.wiley.com/doi/10.1111/1462-2920.15553)). 2x is therefore the default bias against 18S sequences in this script. However, samples from an environment with a higher proportion of long 18S sequences may have a larger bias against 18S.
 - User must also specify the prefix of the output file names. 
 
 # Outputs:
