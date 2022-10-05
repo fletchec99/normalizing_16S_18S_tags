@@ -13,7 +13,9 @@ suppressMessages(library("optparse"))
 
 option_list=list(
   make_option(c("--inputproks"), default="02-PROKs/10-exports/all-16S-seqs.with-tax.tsv", type="character", help="Input file for prokaryotic (16S) ASV counts, default='02-PROKs/10-exports/all-16S-seqs.with-tax.tsv'. If using another file, please specify the full filepath and make sure it matches the format of default, including '#Constructed from biom file'.", metavar="character", action="store_true"),
-  make_option(c("--inputeuks"), default="02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv", type="character", help="Input file for eukaryotic (18S) ASV counts, default='02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv'. If using another file, please specify the full filepath and make sure it matches the format of default, including '#Constructed from biom file'.", metavar="character", action="store_true"),  
+  make_option(c("--inputeuks"), default="02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv", type="character", help="Input file for eukaryotic (18S) ASV counts, default='02-EUKs/15-exports/all-18S-seqs.with-PR2-tax.tsv'. If using another file, please specify the full filepath and make sure it matches the format of default, including '#Constructed from biom file'.", metavar="character", action="store_true"),
+  make_option(c("--prokstats"), default="02-PROKs/03-DADA2d/stats.tsv", type="character", help="Denoising statistics for 16S as output by qiime2, default='02-PROKs/03-DADA2d/stats.tsv'. If using another file, please specify the full filepath.", metavar="character", action="store_true"),
+  make_option(c("--eukstats"), default="02-EUKs/08-DADA2d/stats.tsv", type="character", help="Denoising statistics for 18S as output by qiime2, default='02-EUKs/08-DADA2d/stats.tsv'. If using another file, please specify the full filepath.", metavar="character", action="store_true"),
   make_option(c("--outputfile"), type="character", help="Prefix name of output file", metavar="character", action="store_true"),
   make_option(c("--bias"), default=2, type="numeric", help="Bias against 18S sequences, 2 by default", metavar="numeric", action="store_true")
 );
@@ -32,10 +34,10 @@ if(is.null(opt$bias)){
 
 #1. Calculate percent of reads that passed DADA2 denoising for both proks and euks -----
 print("1. Calculating DADA2 stats")
-proks_stats <- read.table("02-PROKs/03-DADA2d/stats.tsv", sep="\t", header=T, stringsAsFactors = F)
+proks_stats <- read.table(opt$prokstats, sep="\t", header=T, stringsAsFactors = F)
 proks_stats$perc.passed=proks_stats$non.chimeric/proks_stats$input
 
-euks_stats <- read.table("02-EUKs/08-DADA2d/stats.tsv", sep="\t", header=T, stringsAsFactors = F)
+euks_stats <- read.table(opt$eukstats, sep="\t", header=T, stringsAsFactors = F)
 euks_stats$perc.passed=euks_stats$non.chimeric/euks_stats$input
 
 #2. Normalize ASV counts (divide counts of ASVs/ percent passed for each sample, multiply euks ASV counts by the bias you specified)------
@@ -60,7 +62,11 @@ colnames(proks_norm)=colnames(proks_subs)
 
 #Divide ASV count for each sample by percent passing, write into the new matrix
 for(i in proks_stats$sample.id){
-  proks_norm[,grep(i, colnames(proks_subs))]=proks_subs[,grep(i, colnames(proks_subs))]/proks_stats$perc.passed[grep(i, proks_stats$sample.id)]
+  if(proks_stats$perc.passed[grep(i, proks_stats$sample.id)]==0){
+    proks_norm[,grep(i, colnames(proks_subs))]=0
+  } else{
+    proks_norm[,grep(i, colnames(proks_subs))]=proks_subs[,grep(i, colnames(proks_subs))]/proks_stats$perc.passed[grep(i, proks_stats$sample.id)]
+  }
 }
 
 #b. Now repeat normalization for the euks, and also multiply by the bias you specified-----
@@ -80,10 +86,18 @@ euks_norm[,1]=euks_subs$OTU_ID
 colnames(euks_norm)=colnames(euks_subs)
 
 #Divide ASV count by percent passing DADA2 for each sample and multiply by the given bias to normalize ASV counts
-for(i in euks_stats$sample.id){
-  euks_norm[,grep(i, colnames(euks_subs))]=opt$bias*euks_subs[,grep(i, colnames(euks_subs))]/euks_stats$perc.passed[grep(i, euks_stats$sample.id)]
-}
+euks_norm <- as.data.frame(matrix(nrow=nrow(euks_subs), ncol=ncol(euks_subs)))
+euks_norm[,1]=euks_subs$OTU_ID
+colnames(euks_norm)=colnames(euks_subs)
 
+#Divide ASV count by percent passing DADA2 for each sample and multiply by the given bias to normalize ASV counts
+for(i in euks_stats$sample.id){
+  if(euks_stats$perc.passed[grep(i, euks_stats$sample.id)]==0){
+    euks_norm[,grep(i, colnames(euks_subs))]=0
+  } else{
+    euks_norm[,grep(i, colnames(euks_subs))]=opt$bias*euks_subs[,grep(i, colnames(euks_subs))]/euks_stats$perc.passed[grep(i, euks_stats$sample.id)]
+  }
+}
 
 #3. Combine proks and euks tables of normalized sequencing counts-------
 #First, we need to format a little, because this next part only works if colnames for proks and euks data are the same.
@@ -104,8 +118,11 @@ norm_proks <- as.data.frame(matrix(nrow=nrow(proks_norm), ncol=(ncol(proks_norm)
 colnames(norm_proks)=c(colnames(proks_norm), missing_from_proks)
 norm_proks[,1:ncol(proks_norm)]=proks_norm
 #Now add in dummy columns
-for(i in c(1:length(missing_from_proks))){
-  norm_proks[,i+ncol(proks_norm)]=0
+if(length(missing_from_proks)<1){
+  print("No columns missing from proks data")
+}else{for(i in c(1:length(missing_from_proks))){
+    norm_proks[,i+ncol(proks_norm)]=0
+  }
 }
 
 #2. Then, check if there are columns missing in euks spreadsheet and if so, write them in
@@ -122,8 +139,12 @@ norm_euks <- as.data.frame(matrix(nrow=nrow(euks_norm), ncol=(ncol(euks_norm)+le
 colnames(norm_euks)=c(colnames(euks_norm), missing_from_euks)
 norm_euks[,1:ncol(euks_norm)]=euks_norm
 #Now add in dummy columns 
-for(i in c(1:length(missing_from_euks))){
-  norm_euks[,i+ncol(euks_norm)]=0
+if(length(missing_from_euks)<1){
+  print("No columns missing from euks data")
+  } else{
+  for(i in c(1:length(missing_from_euks))){
+    norm_euks[,i+ncol(euks_norm)]=0
+  }
 }
 
 #b. Make sure normalized proks and euks data are in the same order, but OTU ID comes first------
