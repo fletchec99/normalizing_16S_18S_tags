@@ -8,6 +8,8 @@
 #Author: Colette Fletcher-Hoppe 
 #Final version: 04.19.2021
 
+print("Compatible with output files of QIIME2 v2019.4 or earlier.")
+
 #0. Set up arguments to allow user to specify input file name, output file name, and bias-----
 suppressMessages(library("optparse"))
 
