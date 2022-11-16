@@ -35,10 +35,24 @@ if(is.null(opt$bias)){
 #1. Calculate percent of reads that passed DADA2 denoising for both proks and euks -----
 print("1. Calculating DADA2 stats")
 proks_stats <- read.table(opt$prokstats, sep="\t", header=T, stringsAsFactors = F)
-proks_stats$perc.passed=proks_stats$non.chimeric/proks_stats$input
+#Calculate percent passing
+for(i in 1:nrow(proks_stats)){
+  if(proks_stats$input[i]==0){
+    proks_stats$perc.passed.final[i]=0
+  } else{
+    proks_stats$perc.passed.final[i]=proks_stats$non.chimeric[i]/proks_stats$input[i]
+  }
+}
 
 euks_stats <- read.table(opt$eukstats, sep="\t", header=T, stringsAsFactors = F)
-euks_stats$perc.passed=euks_stats$non.chimeric/euks_stats$input
+#Calculate percent passing
+for(i in 1:nrow(euks_stats)){
+  if(euks_stats$input[i]==0){
+    euks_stats$perc.passed.final[i]=0
+  }else{
+    euks_stats$perc.passed.final[i]=euks_stats$non.chimeric[i]/euks_stats$input[i]
+  }
+}
 
 #2. Normalize ASV counts (divide counts of ASVs/ percent passed for each sample, multiply euks ASV counts by the bias you specified)------
 print("2. Normalizing ASV counts for proks and euks")
@@ -198,7 +212,11 @@ relabun_proks_euks$OTU_ID=norm_ordered_proks_euks$OTU_ID
 
 #Write in normalized data
 for(i in c(2:ncol(relabun_proks_euks))){
-  relabun_proks_euks[,i]=norm_ordered_proks_euks[,i]/colsums[(i-1)]
+  if(colsums[(i-1)]==0){
+    relabun_proks_euks[,i]=0
+  } else{
+    relabun_proks_euks[,i]=norm_ordered_proks_euks[,i]/colsums[(i-1)] 
+  }
 }
 
 #5. Add in taxonomy and write it out!-----
